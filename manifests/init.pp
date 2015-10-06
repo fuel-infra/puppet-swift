@@ -64,9 +64,7 @@ class swift(
   file { '/var/run/swift':
     ensure => directory,
   }
-  file { '/etc/swift/backups':
-    ensure => directory,
-  }
+
   file { '/etc/swift/swift.conf':
     ensure => file,
     mode   => '0660',
