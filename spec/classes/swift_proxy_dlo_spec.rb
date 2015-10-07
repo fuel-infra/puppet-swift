@@ -6,11 +6,6 @@ describe 'swift::proxy::dlo' do
     {}
   end
 
-  let :pre_condition do
-    'class { "concat::setup": }
-    concat { "/etc/swift/proxy-server.conf": }'
-  end
-
   let :fragment_file do
     "/var/lib/puppet/concat/_etc_swift_proxy-server.conf/fragments/36_swift_dlo"
   end
