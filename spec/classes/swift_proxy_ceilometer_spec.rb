@@ -22,7 +22,8 @@ describe 'swift::proxy::ceilometer' do
 
   describe "when using default parameters" do
     it { is_expected.to contain_file(fragment_file).with_content(/[filter:ceilometer]/) }
-    it { is_expected.to contain_file(fragment_file).with_content(/use = egg:ceilometer#swift/) }
+    it { is_expected.to contain_file(fragment_file).with_content(/paste.filter_factory = ceilometermiddleware.swift:filter_factory/) }
+    it { is_expected.to contain_file(fragment_file).with_content(/url = rabbit:\/\/guest:guest@127.0.0.1:5672/) }
     if Puppet.version.to_f < 4.0
       it { is_expected.to contain_concat__fragment('swift_ceilometer').with_require('Class[Ceilometer]')}
     else

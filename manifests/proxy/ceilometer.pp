@@ -7,6 +7,22 @@
 #
 # == Parameters
 #
+# [*rabbit_host*]
+#   (Optional) IP or hostname of the rabbit server.
+#   Defaults to '127.0.0.1'.
+#
+# [*rabbit_port*]
+#   (Optional) Port of the rabbit server.
+#   Defaults to 5672.
+#
+# [*rabbit_user*]
+#   (Optional) Username for rabbit.
+#   Defaults to 'guest'.
+#
+# [*rabbit_password*]
+#   (Optional) Password for rabbit user.
+#   Defaults to 'guest'.
+#
 # [*ensure*]
 #   Enable or not ceilometer fragment
 #   Defaults to 'present'
@@ -28,8 +44,12 @@
 # Copyright 2013 eNovance licensing@enovance.com
 #
 class swift::proxy::ceilometer(
-  $ensure = 'present',
-  $group  = 'ceilometer',
+  $rabbit_user     = 'guest',
+  $rabbit_password = 'guest',
+  $rabbit_host     = '127.0.0.1',
+  $rabbit_port     = '5672',
+  $ensure          = 'present',
+  $group           = 'ceilometer',
 ) inherits swift {
 
   User['swift'] {
@@ -52,6 +72,11 @@ class swift::proxy::ceilometer(
     content => template('swift/proxy/ceilometer.conf.erb'),
     order   => '33',
     require => Class['::ceilometer'],
+  }
+
+  package { 'python-ceilometermiddleware':
+    ensure => $ensure,
+    tag    => 'openstack',
   }
 
 }
