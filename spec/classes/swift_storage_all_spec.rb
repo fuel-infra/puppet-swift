@@ -21,8 +21,8 @@ describe 'swift::storage::all' do
       :container_port => '6001',
       :account_port => '6002',
       :log_facility => 'LOG_LOCAL2',
-      :incoming_chmod => '0644',
-      :outgoing_chmod => '0644',
+      :incoming_chmod => 'Du=rwx,g=rx,o=rx,Fu=rw,g=r,o=r',
+      :outgoing_chmod => 'Du=rwx,g=rx,o=rx,Fu=rw,g=r,o=r',
       :log_requests => true
     }
   end
@@ -43,8 +43,8 @@ describe 'swift::storage::all' do
       :account_pipeline => ["5", "6"],
       :allow_versions => true,
       :log_facility => ['LOG_LOCAL2', 'LOG_LOCAL3'],
-      :incoming_chmod => 'Du=rwx,g=rx,o=rx,Fu=rw,g=r,o=r',
-      :outgoing_chmod => 'Du=rwx,g=rx,o=rx,Fu=rw,g=r,o=r',
+      :incoming_chmod => '0644',
+      :outgoing_chmod => '0644',
       :log_requests => false
     }
   ].each do |param_set|
@@ -60,7 +60,7 @@ describe 'swift::storage::all' do
 
       ['object', 'container', 'account'].each do |type|
         it { is_expected.to contain_package("swift-#{type}").with_ensure('present') }
-        it { is_expected.to contain_service("swift-#{type}").with(
+        it { is_expected.to contain_service("swift-#{type}-server").with(
           {:provider  => 'upstart',
            :ensure    => 'running',
            :enable    => true,
@@ -147,7 +147,7 @@ describe 'swift::storage::all' do
         end
         ['object', 'container', 'account'].each do |type|
           it { is_expected.to contain_package("swift-#{type}").with_ensure('present') }
-          it { is_expected.to contain_service("swift-#{type}").with(
+          it { is_expected.to contain_service("swift-#{type}-server").with(
             {:provider  => nil,
               :ensure    => 'running',
               :enable    => true,

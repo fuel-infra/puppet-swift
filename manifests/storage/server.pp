@@ -31,16 +31,13 @@
 #   Defaults to 25.
 #
 # [*incoming_chmod*] Incoming chmod to set in the rsync server.
-#   Optional. Defaults to 0644 for maintaining backwards compatibility.
-#   *NOTE*: Recommended parameter: 'Du=rwx,g=rx,o=rx,Fu=rw,g=r,o=r'
+#   Optional. Defaults to 'Du=rwx,g=rx,o=rx,Fu=rw,g=r,o=r'
 #   This mask translates to 0755 for directories and 0644 for files.
 #
 # [*outgoing_chmod*] Outgoing chmod to set in the rsync server.
-#   Optional. Defaults to 0644 for maintaining backwards compatibility.
-#   *NOTE*: Recommended parameter: 'Du=rwx,g=rx,o=rx,Fu=rw,g=r,o=r'
+#   Optional. Defaults to 'Du=rwx,g=rx,o=rx,Fu=rw,g=r,o=r'
 #   This mask translates to 0755 for directories and 0644 for files.
 #
-
 # [*pipeline*]
 #   (optional) Pipeline of applications.
 #   Defaults to ["${type}-server"].
@@ -48,7 +45,7 @@
 # [*mount_check*]
 #   (optional) Whether or not check if the devices are mounted to prevent accidentally
 #   writing to the root device.
-#   Defaults to false. Soon to be changed to 'true' to match Swift defaults.
+#   Defaults to true.
 #
 # [*user*]
 #   (optional) User to run as
@@ -93,7 +90,7 @@
 # [*log_name*]
 #   (optional) Label used when logging.
 #   Defaults to "${type}-server".
-
+#
 # [*log_udp_host*]
 #   (optional) If not set, the UDP receiver for syslog is disabled.
 #   Defaults to undef.
@@ -107,9 +104,10 @@
 #   good for seeing errors if true
 #   Defaults to true.
 #
-# [*config_file_path*]
-#   (optional) The configuration file name.
-#   Defaults to "${type}-server/${name}.conf".
+#  [*config_file_path*]
+#    (optional) The configuration file name.
+#    Starting at the path "/etc/swift/"
+#    Defaults to "${type}-server.conf"
 #
 define swift::storage::server(
   $type,
@@ -117,11 +115,11 @@ define swift::storage::server(
   $devices                = '/srv/node',
   $owner                  = 'swift',
   $group                  = 'swift',
-  $incoming_chmod         = '0644',
-  $outgoing_chmod         = '0644',
+  $incoming_chmod         = 'Du=rwx,g=rx,o=rx,Fu=rw,g=r,o=r',
+  $outgoing_chmod         = 'Du=rwx,g=rx,o=rx,Fu=rw,g=r,o=r',
   $max_connections        = 25,
   $pipeline               = ["${type}-server"],
-  $mount_check            = undef,
+  $mount_check            = true,
   $user                   = 'swift',
   $workers                = '1',
   $allow_versions         = false,
@@ -136,7 +134,7 @@ define swift::storage::server(
   $log_udp_port           = undef,
   $log_requests           = true,
   # this parameters needs to be specified after type and name
-  $config_file_path       = "${type}-server/${name}.conf"
+  $config_file_path       = "${type}-server.conf",
 ) {
 
   if ($incoming_chmod == '0644') {
@@ -145,14 +143,6 @@ define swift::storage::server(
 
   if ($outgoing_chmod == '0644') {
     warning('The default outgoing_chmod set to 0644 may yield in error prone directories and will be changed in a later release.')
-  }
-
-  if (!$mount_check) {
-    warning('The default for the mount_check parameter will change from false to true in the next release to match upstream. To disable this warning, set mount_check=false.')
-    $mount_check_real = false
-  }
-  else {
-    $mount_check_real = $mount_check
   }
 
   # Warn if ${type-server} isn't included in the pipeline
@@ -169,7 +159,6 @@ define swift::storage::server(
   }
 
   include "::swift::storage::${type}"
-  include ::concat::setup
 
   validate_re($name, '^\d+$')
   validate_re($type, '^object|container|account$')
@@ -193,7 +182,7 @@ define swift::storage::server(
   concat { "/etc/swift/${config_file_path}":
     owner   => $owner,
     group   => $group,
-    notify  => Service["swift-${type}", "swift-${type}-replicator"],
+    notify  => Service["swift-${type}-server", "swift-${type}-replicator", "swift-${type}-auditor"],
     require => Package['swift'],
   }
 
